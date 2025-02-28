@@ -15,7 +15,6 @@ export default function App() {
     addStore, 
     updateStore, 
     deleteStore, 
-    searchStores 
   } = useStores();
   
   const [searchQuery, setSearchQuery] = useState('');

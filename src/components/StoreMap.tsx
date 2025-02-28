@@ -38,7 +38,7 @@ function MapController({
   selectedStore, 
   onStyleChange 
 }: { 
-  selectedStore: Store | null;
+  selectedStore: Store | null | undefined;
   onStyleChange: (style: string) => void;
 }) {
   const map = useMap();
@@ -89,7 +89,7 @@ function MapController({
 }
 
 export const StoreMap = ({ stores, selectedStore, center = [48.8566, 2.3522], onStoreSelect, isAddingNewStore = false }: Props) => {
-  const [mapStyle, setMapStyle] = useState('satellite');
+  const [setMapStyle] = useState('satellite');
   const [markerPosition, setMarkerPosition] = React.useState<[number, number]>(center);
 
   useEffect(() => {
