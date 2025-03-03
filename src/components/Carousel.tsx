@@ -13,47 +13,27 @@ const Carousel = () => {
     slidesToScroll: 1,
     autoplay: true,
     autoplaySpeed: 3000,
-    pauseOnHover: false,
-    pauseOnFocus: true,
+    pauseOnHover: true,
     arrows: false,
     fade: true,
     cssEase: 'ease-in-out',
-    pauseOnDotsHover: true,
   };
 
   return (
-    <div className="relative w-full h-[640px] overflow-hidden">
+    <div className="relative w-full h-[640px] overflow-hidden rounded-lg shadow-lg">
       <Slider {...settings}>
-        <div className="relative w-full h-[640px]">
-          <img
-            src={getRandomStoreImage()}
-            alt="Feature 1"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl font-bold p-4">
-            Discover Local Stores
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="relative w-full h-[640px]">
+            <img
+              src={getRandomStoreImage()}
+              alt={`Feature ${index + 1}`}
+              className="w-full h-full object-cover rounded-lg"
+            />
+            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl font-bold p-4">
+              {index === 0 ? "Discover Local Stores" : index === 1 ? "Support Your Community" : "User-Friendly Platform"}
+            </div>
           </div>
-        </div>
-        <div className="relative w-full h-[640px]">
-          <img
-            src={getRandomStoreImage()}
-            alt="Feature 2"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl font-bold p-4">
-            Build Connections with Local Businesses and Support Your Community by Shopping Small
-          </div>
-        </div>
-        <div className="relative w-full h-[640px]">
-          <img
-            src={getRandomStoreImage()}
-            alt="Feature 3"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white text-2xl font-bold p-4">
-            Navigate Effortlessly Through Our User-Friendly Platform Designed for Your Convenience
-          </div>
-        </div>
+        ))}
       </Slider>
     </div>
   );

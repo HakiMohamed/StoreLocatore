@@ -34,23 +34,22 @@ interface Props {
 }
 
 // Composant séparé pour le centrage et les contrôles de la carte
-function MapController({ 
+const MapController = ({ 
   selectedStore, 
   onStyleChange 
 }: { 
   selectedStore: Store | null | undefined;
   onStyleChange: (style: string) => void;
-}) {
+}) => {
   const map = useMap();
 
   // Effet de centrage
   React.useEffect(() => {
     if (selectedStore && map) {
-      map.flyTo(
-        [selectedStore.latitude, selectedStore.longitude],
-        16,
-        { duration: 1.5 }
-      );
+      const { latitude, longitude } = selectedStore;
+      if (latitude !== undefined && longitude !== undefined) {
+        map.flyTo([latitude, longitude], 16, { duration: 1.5 });
+      }
     }
   }, [selectedStore, map]);
 
@@ -123,7 +122,7 @@ export const StoreMap = ({ stores, selectedStore, center = [48.8566, 2.3522], on
           <Marker
             key={store.id}
             position={[store.latitude, store.longitude]}
-            icon={defaultIcon}
+            icon={store.id === selectedStore?.id ? selectedIcon : defaultIcon}
             eventHandlers={{
               click: () => onStoreSelect?.(store.latitude, store.longitude)
             }}

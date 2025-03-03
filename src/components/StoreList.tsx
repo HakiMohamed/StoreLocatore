@@ -2,7 +2,6 @@ import { Store } from '../types/Store';
 import { FaEdit, FaTrash, FaMapMarkerAlt, FaStore, FaMap, FaTag } from 'react-icons/fa';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { StoreMap } from './StoreMap'; // Import StoreMap
 
 interface Props {
   stores: Store[];
@@ -23,9 +22,7 @@ export const StoreList = ({ stores, onEdit, onDelete, onShowOnMap }: Props) => {
       >
         <FaStore className="mx-auto h-16 w-16 text-gray-300" />
         <h3 className="mt-4 text-lg font-medium text-gray-900">No stores available</h3>
-        <p className="mt-2 text-gray-500">
-          Start by adding your first store
-        </p>
+        <p className="mt-2 text-gray-500">Start by adding your first store</p>
       </motion.div>
     );
   }
@@ -121,4 +118,4 @@ export const StoreList = ({ stores, onEdit, onDelete, onShowOnMap }: Props) => {
       ))}
     </div>
   );
-}; 
+};

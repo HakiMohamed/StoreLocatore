@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import './App.css';
 import { StoreForm } from './components/StoreForm';
 import { StoreMap } from './components/StoreMap';
@@ -10,7 +10,7 @@ import { FaPlus, FaSearch, FaTimes, FaArrowLeft } from 'react-icons/fa';
 import Carousel from './components/Carousel';
 
 export default function App() {
-  const { 
+    const { 
     stores, 
     addStore, 
     updateStore, 
@@ -24,6 +24,12 @@ export default function App() {
   const [showMap, setShowMap] = useState(false);
   const [mapCenter, setMapCenter] = useState<[number, number]>([48.8566, 2.3522]); // Default to Paris
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [locationQuery, setLocationQuery] = useState('');
+  const [searchResult, setSearchResult] = useState<Store | null>(null);
+
+  // Références pour le défilement
+  const mapRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleSubmit = (data: StoreFormData) => {
     if (editingStore) {
@@ -42,12 +48,37 @@ export default function App() {
     setShowMap(true);
   };
 
+  const handleLocationSearch = () => {
+    const foundStores = stores.filter(store => 
+      store.name.toLowerCase().includes(locationQuery.toLowerCase()) ||
+      store.city.toLowerCase().includes(locationQuery.toLowerCase()) ||
+      store.postalCode.includes(locationQuery) ||
+      store.services.some(service => service.toLowerCase().includes(locationQuery.toLowerCase()))
+    );
+    if (foundStores.length > 0) {
+      const firstStore = foundStores[0];
+      setMapCenter([firstStore.latitude, firstStore.longitude]);
+      setSearchResult(firstStore);
+      setShowMap(true);
+    } else {
+      setSearchResult(null);
+    }
+  };
+
   const filteredStores = searchQuery
     ? stores.filter(store => 
         store.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         store.city.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : stores;
+
+  const scrollToMap = () => {
+    mapRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToList = () => {
+    listRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-gray-100 to-white">
@@ -68,11 +99,17 @@ export default function App() {
               <a href="#features" className="text-white px-4 py-2 hover:bg-indigo-700 rounded">Features</a>
               <a href="#about" className="text-white px-4 py-2 hover:bg-indigo-700 rounded">About</a>
               <button 
+                onClick={scrollToMap} 
+                className="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-gray-100"
+              >
+                STORES
+              </button>
+              <button 
                 onClick={() => setIsFormOpen(true)} 
                 className="bg-white text-indigo-600 px-4 py-2 rounded-lg hover:bg-gray-100"
               >
                 Add Store
-              </button>
+              </button> 
             </div>
           </div>
         </div>
@@ -123,66 +160,94 @@ export default function App() {
           </div>
         </div>
 
-        {showMap ? (
-          // Map View
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setShowMap(false)}
-                className="flex bg-green-700 px-4 py-2 rounded-lg items-center space-x-2 text-white hover:text-gray-800"
-              >
-                <FaArrowLeft className="h-4 w-4 " />
-                <span>Back to List</span>
-              </button>
-              <h2 className="text-xl font-semibold text-gray-900">
-                {selectedStore ? `${selectedStore.name} on the map` : 'Store Map'}
-              </h2>
-            </div>
-            <div className="h-[600px] rounded-xl overflow-hidden shadow-lg">
-              <StoreMap
-                stores={stores}
-                center={mapCenter}
-                selectedStore={selectedStore}
-                onStoreSelect={setSelectedStore}
-              />
-            </div>
-          </div>
-        ) : (
-          // List View
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center flex-wrap">
-              <div className="flex-1 max-w-md mb-4 sm:mb-0">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for a store..."
-                    className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                  <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div ref={mapRef}>
+          {showMap ? (
+            // Map View
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center flex-wrap">
+                <div className="flex-1 max-w-md mb-4 sm:mb-0">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for a city, postal code, name, or service..."
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      value={locationQuery}
+                      onChange={(e) => setLocationQuery(e.target.value)}
+                      onKeyPress={(e) => { if (e.key === 'Enter') handleLocationSearch(); }}
+                    />
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setShowMap(false)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition duration-200"
+                  >
+                    Store List
+                  </button>
+                  <button 
+                    onClick={() => setIsFormOpen(true)} 
+                    className="bg-white text-indigo-600 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-200"
+                  >
+                    Add Store
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setIsFormOpen(true)}
-                className="ml-0 sm:ml-4 mt-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex items-center space-x-2 transition duration-200 ease-in-out transform hover:scale-105"
-              >
-                <FaPlus className="h-4 w-4" />
-                <span>Add Store</span>
-              </button>
+              <div className="h-[600px]">
+                <StoreMap
+                  stores={stores}
+                  center={mapCenter}
+                  selectedStore={searchResult}
+                  onStoreSelect={setSelectedStore}
+                  isAddingNewStore={false}
+                />
+              </div>
             </div>
+          ) : (
+            // List View
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-center flex-wrap">
+                <div className="flex-1 max-w-md mb-4 sm:mb-0">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for a city, postal code, name, or service..."
+                      className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => { if (e.key === 'Enter') handleLocationSearch(); }}
+                    />
+                    <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <button 
+                    onClick={() => setShowMap(true)}
+                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-indigo-700 transition duration-200"
+                  >
+                    Map
+                  </button>
+                  <button 
+                    onClick={() => setIsFormOpen(true)} 
+                    className="bg-white text-indigo-600 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 transition duration-200"
+                  >
+                    Add Store
+                  </button>
+                </div>
+              </div>
 
-            <StoreList
-              stores={filteredStores}
-              onEdit={(store) => {
-                setEditingStore(store);
-                setIsFormOpen(true);
-              }}
-              onDelete={deleteStore}
-              onShowOnMap={handleShowOnMap}
-            />
-          </div>
-        )}
+              <StoreList
+                stores={filteredStores}
+                onEdit={(store) => {
+                  setEditingStore(store);
+                  setIsFormOpen(true);
+                }}
+                onDelete={deleteStore}
+                onShowOnMap={handleShowOnMap}
+              />
+            </div>
+          )}
+        </div>
 
         {/* Form Modal */}
         <Dialog
